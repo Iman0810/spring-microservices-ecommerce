@@ -33,6 +33,7 @@ check "discovery-server" "http://localhost:8761/actuator/health"
 check "config-server"    "http://localhost:8888/actuator/health"
 check "api-gateway"      "http://localhost:8080/actuator/health"
 check "user-service"     "http://localhost:8081/actuator/health"
+check "product-service"  "http://localhost:8082/actuator/health"
 
 echo ""
 echo "=== Eureka Registered Instances ==="

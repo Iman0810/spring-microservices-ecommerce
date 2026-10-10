@@ -10,11 +10,17 @@ spring:
         locator:
           enabled: false           # we define routes explicitly
       routes:
-        # Placeholder route — will point to user-service once it exists
         - id: user-service-route
-          uri: lb://USER-SERVICE    # lb:// = load-balanced via Eureka
+          uri: lb://USER-SERVICE
           predicates:
             - Path=/api/users/**,/api/auth/**
+          filters:
+            - StripPrefix=1
+
+        - id: product-service-route
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/products/**
           filters:
             - StripPrefix=1
 

@@ -41,7 +41,7 @@ public class Product {
     private String category;
 
     @Column(nullable = false,unique = true, length = 100)
-    private String sku;   // Stock Keeping Unit — unique product code
+    private String sku;   
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
