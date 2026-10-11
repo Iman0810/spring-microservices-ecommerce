@@ -8,6 +8,8 @@ import com.example.product.exception.ResourceNotFoundException;
 import com.example.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,12 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+
+    // ─────────────────────────────────────────────────────────
+    // CACHE NAMES
+    // ─────────────────────────────────────────────────────────
+    private static final String PRODUCT_CACHE = "products";
+    private static final String PRODUCT_BY_SKU_CACHE = "products-by-sku";
 
     // ─────────────────────────────────────────────────────────
     // CREATE
@@ -48,18 +56,22 @@ public class ProductService {
     }
 
     // ─────────────────────────────────────────────────────────
-    // READ
+    // READ — with caching
     // ─────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
+    @Cacheable(value = PRODUCT_CACHE, key = "#id")
     public ProductResponse getById(Long id) {
+        log.info("CACHE MISS — fetching product id={} from DB", id);
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", id));
         return toResponse(product);
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = PRODUCT_BY_SKU_CACHE, key = "#sku")
     public ProductResponse getBySku(String sku) {
+        log.info("CACHE MISS — fetching product sku={} from DB", sku);
         Product product = productRepository.findBySku(sku)
                 .orElseThrow(() -> new ResourceNotFoundException("Product with SKU", sku));
         return toResponse(product);
@@ -92,15 +104,15 @@ public class ProductService {
     }
 
     // ─────────────────────────────────────────────────────────
-    // UPDATE
+    // UPDATE — evicts stale cache entries
     // ─────────────────────────────────────────────────────────
 
     @Transactional
+    @CacheEvict(value = { PRODUCT_CACHE, PRODUCT_BY_SKU_CACHE }, allEntries = true)
     public ProductResponse update(Long id, ProductRequest request) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", id));
 
-        // If SKU is changing, ensure the new one isn't taken by another product
         if (!product.getSku().equals(request.getSku())
                 && productRepository.existsBySku(request.getSku())) {
             throw new ConflictException("SKU already exists: " + request.getSku());
@@ -114,22 +126,23 @@ public class ProductService {
         product.setSku(request.getSku());
 
         Product updated = productRepository.save(product);
-        log.info("Updated product id={} sku={}", updated.getId(), updated.getSku());
+        log.info("Updated product id={} sku={} — evicted caches", updated.getId(), updated.getSku());
 
         return toResponse(updated);
     }
 
     // ─────────────────────────────────────────────────────────
-    // DELETE
+    // DELETE — evicts stale cache entries
     // ─────────────────────────────────────────────────────────
 
     @Transactional
+    @CacheEvict(value = { PRODUCT_CACHE, PRODUCT_BY_SKU_CACHE }, allEntries = true)
     public void delete(Long id) {
         if (!productRepository.existsById(id)) {
             throw new ResourceNotFoundException("Product", id);
         }
         productRepository.deleteById(id);
-        log.info("Deleted product id={}", id);
+        log.info("Deleted product id={} — evicted caches", id);
     }
 
     // ─────────────────────────────────────────────────────────
