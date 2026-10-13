@@ -39,9 +39,9 @@ A production-grade e-commerce backend built with **Spring Boot 3.4** and **Sprin
 |---|---|---|---|
 | discovery-server | 8761 | ✅ Working | Eureka service registry |
 | config-server | 8888 | ✅ Working | Centralized configuration |
-| api-gateway | 8080 | 🚧 In progress | Single entry point, routing |
-| user-service | 8081 | 🚧 Pending | Auth, users, JWT issuance |
-| product-service | 8082 | 🚧 Pending | Product catalog, caching |
+| api-gateway | 8080 | ✅ Working | Single entry point, routing |
+| user-service | 8081 | ✅ Working | Auth, users, JWT issuance |
+| product-service | 8082 | ✅ Inprogress | Product catalog, caching |
 | order-service | 8083 | 🚧 Pending | Orders, Feign + Resilience4j |
 | payment-service | 8084 | 🚧 Pending | Payments, idempotency |
 | notification-service | 8085 | 🚧 Pending | Kafka consumer for events |
